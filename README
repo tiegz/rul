@@ -5,3 +5,16 @@ RUL is an open-source XUL Runner framework. It helps you build a XUL Runner fram
 
 * auto-generating your application files
 * providing utility tasks in rake to build and install your app
+
+Instructions
+============
+1) git clone git://github.com/tiegz/rul.git rul
+2) cd rul
+3) rake app:new
+4) rake app:install:mac (only works on Mac so far)
+(THIS DOESNT WORK YET!!!!)
+
+
+NOTE
+====
+This is totally experimental and the structure will probably change as I learn more about XULRunner and packaging XULRunner applications
