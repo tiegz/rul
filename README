@@ -1,0 +1,7 @@
+This is my RUL app
+==================
+
+RUL is an open-source XUL Runner framework. It helps you build a XUL Runner framework by:
+
+* auto-generating your application files
+* providing utility tasks in rake to build and install your app
