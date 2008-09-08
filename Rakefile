@@ -3,15 +3,16 @@ require 'rake'
 require 'activesupport'
 require 'erb'
 
-RUL_ROOT      = File.dirname(__FILE__) + "/app"
+# TODO ARGV these suckas
+APP_NAME      = "tieg".split('/').last.underscore.strip
+APP_VERSION   = 0.1
+APP_ID        = 'my@email.address'
+APP_AUTHOR    = 'zzz'
+
+RUL_ROOT      = File.dirname(__FILE__) + "/#{APP_NAME}"
 XUL_PATH      = "/Library/Frameworks/XUL.framework"
 BIN_PATH      = XUL_PATH + "/xulrunner-bin" # TODO x-platformize
 
-# TODO ARGV these suckas
-APP_NAME      = `pwd`.split('/').last.underscore.strip
-APP_VERSION   = 1.0
-APP_ID        = 'my@email.address'
-APP_AUTHOR    = 'MyName'
 
 TEMPLATE_ROOT = File.dirname(__FILE__), "lib", "templates"
 
@@ -19,75 +20,71 @@ namespace :app do
   namespace :install do
     desc "install this xulrunner application for Mac OS X"
     task :mac do
-      # system %(#{BIN_PATH} --install-app #{RUL_ROOT}/app.zip) 
-      
-      FileUtils.mkdir_p "#{APP_NAME}.app"
-      FileUtils.mkdir_p "#{APP_NAME}.app/Contents/Frameworks"
-      FileUtils.mkdir_p "#{APP_NAME}.app/Contents/MacOS"
-      puts " -> generated #{APP_NAME}.app/ bundle" 
-      FileUtils.ln_s XUL_PATH, "#{APP_NAME}.app/Contents/Frameworks/XUL.framework"
-      FileUtils.ln_s RUL_ROOT, "#{APP_NAME}.app/Contents/Resources"
-      FileUtils.ln_s "#{XUL_PATH}/Versions/Current/xulrunner", "#{APP_NAME}.app/Contents/MacOS/xulrunner"
-      puts " -> created symbolic links to framework, app, and ? in bundle"
-      File.open "#{APP_NAME}.app/Contents/Info.plist", 'w' do |f|
-        template = File.join TEMPLATE_ROOT, 'info.plist'
-        f.write ERB.new(File.open(template).read, nil, '-').result(binding)
-        puts " -> generated app/application.ini"
-      end
-      # system %(#{BIN_PATH} "#{APP_NAME}.app/Contents/Resources/application.ini")
-      # puts " -> running .app"
+      run %(#{BIN_PATH} --install-app #{RUL_ROOT})
     end
   end
 
   desc "removes install files and app"
   task :reset do
-    FileUtils.rm_rf "app"
-    FileUtils.rm_rf "#{APP_NAME}.app"
+    run %(rm -rf #{APP_NAME})
+    # FileUtils.rm_rf "#{APP_NAME}.app"
   end
 
   desc "run this xulrunner application"
   task :run do
-    cmd = %(#{BIN_PATH} #{RUL_ROOT}) 
-    puts cmd
-    system cmd
+    run %(#{BIN_PATH} #{RUL_ROOT}) 
   end
   
   desc "build the skeleton for this app" # TODO replace with a bin "rul" script that generates the skeleton
   task :new do
-    FileUtils.mkdir_p 'app'
-    puts " -> generated app/"
+    FileUtils.mkdir_p APP_NAME
+    say "generated #{APP_NAME}/"
   
-    File.open 'app/application.ini', 'w' do |f|
-      template = File.join TEMPLATE_ROOT, 'application.ini'
+    File.open "#{APP_NAME}/application.ini", 'w' do |f|
+      template = File.join TEMPLATE_ROOT, 'application.ini.erb'
       f.write ERB.new(File.open(template).read, nil, '-').result(binding)
-      puts " -> generated app/application.ini"
+      say "generated #{APP_NAME}/application.ini"
     end
 
-    FileUtils.mkdir_p 'app/chrome/content'
-    puts " -> generated app/chrome/"
-    puts " -> generated app/chrome/content"
-    FileUtils.mkdir_p 'app/chrome/images'
-    puts " -> generated app/chrome/images"
-    FileUtils.mkdir_p 'app/chrome/icons/default'
-    puts " -> generated app/chrome/icons"
-    puts " -> generated app/chrome/icons/default"
+    FileUtils.mkdir_p "#{APP_NAME}/chrome/content"
+    say "generated #{APP_NAME}/chrome/"
+    say "generated #{APP_NAME}/chrome/content"
+    say "generated #{APP_NAME}/chrome/content"
+    # FileUtils.mkdir_p "#{APP_NAME}/chrome/images"
+    # say "generated #{APP_NAME}/chrome/images"
+    # FileUtils.mkdir_p "#{APP_NAME}/chrome/icons/default"
+    # say "generated #{APP_NAME}/chrome/icons"
+    # say "generated #{APP_NAME}/chrome/icons/default"
 
-    File.open "app/chrome/content/#{APP_NAME}.xul", 'w' do |f|
-      template = File.join TEMPLATE_ROOT, 'main.xul'
+    File.open "#{APP_NAME}/chrome/content/default.xul", 'w' do |f|
+      template = File.join TEMPLATE_ROOT, 'default.xul.erb'
       f.write ERB.new(File.open(template).read, nil, '-').result(binding)
-      puts " -> generated app/chrome/content/#{APP_NAME}.xul"
+      say "generated #{APP_NAME}/chrome/content/default.xul"
     end
-    File.open 'app/chrome/chrome.manifest', 'w' do |f|
-      template = File.join TEMPLATE_ROOT, 'chrome.manifest'
+    File.open "#{APP_NAME}/chrome/chrome.manifest", 'w' do |f|
+      template = File.join TEMPLATE_ROOT, 'chrome.manifest.erb'
       f.write ERB.new(File.open(template).read, nil, '-').result(binding)
-      puts " -> generated app/chrome/chrome.manifest"
+      say "generated #{APP_NAME}/chrome/chrome.manifest"
     end
-    FileUtils.mkdir_p 'app/defaults/preferences'
-    File.open "app/defaults/preferences/#{APP_NAME}-prefs.js", 'w' do |f|
-      template = File.join TEMPLATE_ROOT, 'prefs.js'
+    File.open "#{APP_NAME}/chrome/content/application.js", 'w' do |f|
+      template = File.join TEMPLATE_ROOT, 'application.js.erb'
       f.write ERB.new(File.open(template).read, nil, '-').result(binding)
-      puts " -> generated app/defaults/preferences/#{APP_NAME}-prefs.js"
+      say "generated #{APP_NAME}/chrome/chrome.manifest"
+    end
+    FileUtils.mkdir_p "#{APP_NAME}/defaults/preferences"
+    File.open "#{APP_NAME}/defaults/preferences/prefs.js", 'w' do |f|
+      template = File.join TEMPLATE_ROOT, 'prefs.js.erb'
+      f.write ERB.new(File.open(template).read, nil, '-').result(binding)
+      say "generated #{APP_NAME}/defaults/preferences/prefs.js"
     end
   end
 end
 
+def say something
+  puts " -> #{something}"
+end
+
+def run cmd
+  say cmd
+  system cmd
+end
